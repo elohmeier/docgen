@@ -1,10 +1,13 @@
 import { defineConfig } from "vite";
 
+const base = process.env.VITE_BASE_PATH || "/";
+
 export default defineConfig({
+  base,
   build: {
     rollupOptions: {
       // zetaHelper.js is loaded at runtime from public/, not bundled
-      external: ["/vendor/zetajs/zetaHelper.js"],
+      external: [`${base}vendor/zetajs/zetaHelper.js`],
     },
   },
   server: {

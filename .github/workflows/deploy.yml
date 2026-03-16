@@ -25,6 +25,8 @@ jobs:
       - run: bun install --frozen-lockfile
 
       - run: bun run build
+        env:
+          VITE_BASE_PATH: /${{ github.event.repository.name }}/
 
       - uses: actions/upload-pages-artifact@v3
         with:
