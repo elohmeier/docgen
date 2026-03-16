@@ -36,7 +36,7 @@ async function initZetaJS(): Promise<void> {
   // Dynamic import from absolute URL — zetaHelper.js lives in public/ and must
   // not be bundled by Vite (it's also loaded by the WASM worker separately).
   const { ZetaHelperMain } = await import(
-    /* @vite-ignore */ new URL("vendor/zetajs/zetaHelper.js", import.meta.url).href
+    /* @vite-ignore */ `${import.meta.env.BASE_URL}vendor/zetajs/zetaHelper.js`
   );
 
   zetaHelperMain = new ZetaHelperMain("office_thread.js", {
