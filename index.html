@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DocGen — Browser</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: system-ui, -apple-system, sans-serif;
+        max-width: 720px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+        color: #1a1a1a;
+      }
+      h1 { margin-bottom: 0.5rem; }
+      .subtitle { color: #666; margin-bottom: 2rem; }
+      section { margin-bottom: 1.5rem; }
+      label { display: block; font-weight: 600; margin-bottom: 0.25rem; }
+      .hint { font-size: 0.85rem; color: #666; margin-bottom: 0.5rem; }
+      input[type="file"] {
+        display: block;
+        padding: 0.5rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        width: 100%;
+        background: #fafafa;
+      }
+      .pattern-row { margin: 0.5rem 0; }
+      .pattern-row label { font-weight: normal; display: flex; align-items: center; gap: 0.5rem; }
+      .pattern-row input[type="text"] {
+        flex: 1;
+        padding: 0.35rem 0.5rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-family: monospace;
+      }
+      .checkbox-row { display: flex; align-items: center; gap: 0.5rem; margin: 1rem 0; }
+      .checkbox-row label { font-weight: normal; margin: 0; }
+      button {
+        background: #2563eb;
+        color: white;
+        border: none;
+        padding: 0.6rem 1.5rem;
+        border-radius: 4px;
+        font-size: 1rem;
+        cursor: pointer;
+      }
+      button:hover { background: #1d4ed8; }
+      button:disabled { background: #93c5fd; cursor: not-allowed; }
+      #log {
+        margin-top: 1rem;
+        background: #111;
+        color: #eee;
+        font-family: monospace;
+        font-size: 0.85rem;
+        padding: 0.75rem;
+        border-radius: 4px;
+        min-height: 100px;
+        max-height: 400px;
+        overflow-y: auto;
+      }
+      #log:empty::after { content: "Ready."; color: #666; }
+      .log-info { color: #d1d5db; }
+      .log-error { color: #f87171; }
+      .log-success { color: #4ade80; }
+      .status-ready { color: #16a34a; font-weight: 600; }
+      .wasm-bar {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+        color: #666;
+        margin-top: 0.25rem;
+      }
+      /* Hidden canvas required by ZetaJS even in headless mode */
+      #qtcanvas { display: none; }
+    </style>
+  </head>
+  <body>
+    <h1>DocGen</h1>
+    <p class="subtitle">Generate documents from templates — entirely in your browser.</p>
+
+    <section>
+      <label for="templates">Template files (.docx, .xlsx)</label>
+      <p class="hint">
+        Use <code>{{variable}}</code> syntax in your templates.
+        Filters: <code>{{value|fmt_date}}</code>, <code>{{value|fmt_dec}}</code>,
+        <code>{{value|fmt_month}}</code>, <code>{{value|fmt_iban}}</code>.
+        Word templates generate one document per row. Excel templates (header row + template row)
+        produce a single file with all rows expanded.
+      </p>
+      <input type="file" id="templates" accept=".docx,.xlsx" multiple />
+      <div id="pattern-inputs"></div>
+    </section>
+
+    <section>
+      <label for="input-file">Input data (.xlsx)</label>
+      <p class="hint">Excel file with one row per document. Column names are normalized to snake_case.</p>
+      <input type="file" id="input-file" accept=".xlsx" />
+    </section>
+
+    <div class="checkbox-row">
+      <input type="checkbox" id="pdf-convert" />
+      <label for="pdf-convert">Convert to PDF (uses LibreOffice WASM — ~150 MB download on first use)</label>
+    </div>
+    <div class="wasm-bar">
+      LibreOffice WASM: <span id="wasm-status">Not loaded</span>
+    </div>
+
+    <section style="margin-top: 1.5rem">
+      <button id="generate">Generate Documents</button>
+    </section>
+
+    <div id="log"></div>
+
+    <canvas id="qtcanvas"></canvas>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
