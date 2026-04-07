@@ -124,11 +124,17 @@ export function generateDocuments(
     const ext = template.name.split(".").pop()?.toLowerCase();
 
     if (ext === "docx") {
+      const templateBaseName = template.name.replace(/\.[^.]+$/u, "");
+      const defaultPattern = /\{\{.*?\}\}/u.test(templateBaseName)
+        ? templateBaseName
+        : "";
+
       for (let i = 0; i < records.length; i++) {
         const record = records[i];
-        const baseFilename = template.filenamePattern
-          ? sanitizeFilename(renderFilename(template.filenamePattern, record))
-          : sanitizeFilename(`${template.name}_${i + 1}`);
+        const filenamePattern = template.filenamePattern || defaultPattern;
+        const baseFilename = filenamePattern
+          ? sanitizeFilename(renderFilename(filenamePattern, record))
+          : sanitizeFilename(`${templateBaseName}_${i + 1}`);
 
         onProgress?.(`Rendering ${baseFilename}.docx (${i + 1}/${records.length})`);
 

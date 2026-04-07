@@ -18,6 +18,7 @@ const pdfCheckbox = document.getElementById("pdf-convert") as HTMLInputElement;
 const generateBtn = document.getElementById("generate") as HTMLButtonElement;
 const log = document.getElementById("log") as HTMLDivElement;
 const statusEl = document.getElementById("wasm-status") as HTMLSpanElement;
+const patternInputsContainer = document.getElementById("pattern-inputs") as HTMLDivElement;
 
 // --- Logging ---
 function appendLog(message: string, level: "info" | "error" | "success" = "info") {
@@ -26,6 +27,49 @@ function appendLog(message: string, level: "info" | "error" | "success" = "info"
   line.className = `log-${level}`;
   log.appendChild(line);
   log.scrollTop = log.scrollHeight;
+}
+
+function getDefaultFilenamePattern(fileName: string): string {
+  const baseName = fileName.replace(/\.docx$/iu, "");
+  return /\{\{.*?\}\}/u.test(baseName) ? baseName : `${baseName}_{{n}}`;
+}
+
+function syncTemplatePatternInputs() {
+  const previousValues = new Map<string, string>();
+
+  patternInputsContainer
+    .querySelectorAll<HTMLInputElement>(".filename-pattern")
+    .forEach((input) => {
+      const fileName = input.dataset.templateName;
+      if (fileName) {
+        previousValues.set(fileName, input.value);
+      }
+    });
+
+  patternInputsContainer.innerHTML = "";
+
+  if (!templateInput.files?.length) return;
+
+  for (const file of templateInput.files) {
+    if (!file.name.toLowerCase().endsWith(".docx")) continue;
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "pattern-row";
+
+    const label = document.createElement("label");
+    label.textContent = file.name + " \u2192 ";
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.className = "filename-pattern";
+    input.placeholder = "e.g. invoice_{{surname}}_{{name}}";
+    input.dataset.templateName = file.name;
+    input.value = previousValues.get(file.name) ?? getDefaultFilenamePattern(file.name);
+
+    label.appendChild(input);
+    wrapper.appendChild(label);
+    patternInputsContainer.appendChild(wrapper);
+  }
 }
 
 // --- ZetaJS PDF Conversion ---
@@ -201,36 +245,11 @@ async function handleGenerate() {
 }
 
 // --- UI: Dynamic filename pattern inputs ---
-templateInput.addEventListener("change", () => {
-  const container = document.getElementById("pattern-inputs")!;
-  container.innerHTML = "";
-
-  if (!templateInput.files?.length) return;
-
-  for (const file of templateInput.files) {
-    if (!file.name.toLowerCase().endsWith(".docx")) continue;
-
-    const wrapper = document.createElement("div");
-    wrapper.className = "pattern-row";
-
-    const label = document.createElement("label");
-    label.textContent = file.name + " → ";
-
-    const input = document.createElement("input");
-    input.type = "text";
-    input.className = "filename-pattern";
-    input.placeholder = "e.g. invoice_{{surname}}_{{name}}";
-    const baseName = file.name.replace(/\.docx$/i, "");
-    input.value = baseName + "_{{n}}";
-
-    label.appendChild(input);
-    wrapper.appendChild(label);
-    container.appendChild(wrapper);
-  }
-});
+templateInput.addEventListener("change", syncTemplatePatternInputs);
 
 // --- Wire up ---
 generateBtn.addEventListener("click", handleGenerate);
+syncTemplatePatternInputs();
 
 // If PDF checkbox is checked, start preloading WASM
 pdfCheckbox.addEventListener("change", () => {
