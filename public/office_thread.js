@@ -43,9 +43,14 @@ zHT.thrPort.onmessage = (e) => {
 
         zetajs.mainPort.postMessage({ cmd: 'converted', id, from, to });
       } catch (err) {
-        const exc = zetajs.catchUnoException(err);
-        console.error('PDF conversion error:', exc.Message);
-        zetajs.mainPort.postMessage({ cmd: 'convert_error', id: e.data.id, error: exc.Message });
+        try {
+          const exc = zetajs.catchUnoException(err);
+          console.error('PDF conversion error:', exc.Message);
+          zetajs.mainPort.postMessage({ cmd: 'convert_error', id: e.data.id, error: exc.Message });
+        } catch {
+          console.error('PDF conversion error:', err);
+          zetajs.mainPort.postMessage({ cmd: 'convert_error', id: e.data.id, error: String(err) });
+        }
       }
       break;
     }

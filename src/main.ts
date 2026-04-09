@@ -191,6 +191,10 @@ async function handleGenerate() {
     });
 
     // 3. If PDF is wanted, ensure WASM is loaded
+    if (wantPdf && isSafari) {
+      showSafariWarning();
+      return;
+    }
     if (wantPdf && !zetaReady) {
       await initZetaJS();
     }
@@ -247,15 +251,32 @@ async function handleGenerate() {
 // --- UI: Dynamic filename pattern inputs ---
 templateInput.addEventListener("change", syncTemplatePatternInputs);
 
+// --- Safari detection ---
+const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+function showSafariWarning() {
+  if (!isSafari) return;
+  appendLog(
+    "Warning: PDF conversion is not supported in Safari due to a WebAssembly compatibility issue. Please use Chrome or Firefox for PDF conversion.",
+    "error",
+  );
+}
+
 // --- Wire up ---
 generateBtn.addEventListener("click", handleGenerate);
 syncTemplatePatternInputs();
 
 // If PDF checkbox is checked, start preloading WASM
 pdfCheckbox.addEventListener("change", () => {
-  if (pdfCheckbox.checked && !zetaReady && !zetaHelperMain) {
-    initZetaJS().catch((err) =>
-      appendLog(`WASM load error: ${err.message}`, "error"),
-    );
+  if (pdfCheckbox.checked) {
+    if (isSafari) {
+      showSafariWarning();
+      return;
+    }
+    if (!zetaReady && !zetaHelperMain) {
+      initZetaJS().catch((err) =>
+        appendLog(`WASM load error: ${err.message}`, "error"),
+      );
+    }
   }
 });
